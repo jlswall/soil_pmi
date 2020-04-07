@@ -49,9 +49,6 @@ indivT <- rawIndivT %>%
   left_join(samplingT) %>%
   select(-collectionDay)
 rm(rawIndivT, rawAllT, samplingT)
-
-## Separate out the subject identifier from the sampleName.
-indivT$subj <- substring(indivT$sampleName, first=1, last=2)
 ## ##################################################
 
 
@@ -138,19 +135,19 @@ write.csv(freqTaxaByDistanceT, file="family_freq_taxa_by_distance.csv",
 ## sample.
 commontaxaT <- indivT
 ## Find rows which contain taxa which do not meet the frequency cutoff
-## for that type.
-indicRare <- !( with(commontaxaT, paste(taxon, type, sep=":")) %in% with(freqTaxaByDistanceT, paste(taxon, type, sep=":")) )
+## for that distance.
+indicRare <- !( with(commontaxaT, paste(taxon, distance, sep=":")) %in% with(freqTaxaByDistanceT, paste(taxon, distance, sep=":")) )
 ## For these "rare" taxa, we change taxon name to rare.
 commontaxaT[indicRare, "taxon"] <- "Rare"
 ## Now, we add up the rare counts so that "Rare" appears only one for
 ## each sample.
 commontaxaT <- commontaxaT %>%
-  group_by(sampleName, taxon, type, degdays) %>%
+  group_by(sampleName, taxon, distance, degdays) %>%
   summarize(counts = sum(counts))
 
 
-## Use the table of total counts by subj/day to find the fraction
-## represented by each taxa for each subj/day.
+## Use the table of total counts by sample to find the fraction
+## represented by each taxa for each sample.
 commontaxaT <- commontaxaT %>%
   left_join(ctBySampleT) %>%
   mutate(fracBySample=counts/totals) %>%
